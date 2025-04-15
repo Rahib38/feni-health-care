@@ -1,8 +1,7 @@
-import { Prisma, PrismaClient } from "../../../generated/prisma";
+import { Prisma } from "../../../generated/prisma";
 import { paginationHelper } from "../../../helpers/paginationHelper";
 import prisma from "../../../shared/prisma";
 import { adminSearchAbleFields } from "./admin.constant";
-
 
 const getAdminAllFromDB = async (params: any, options: any) => {
   const andCondions: Prisma.AdminWhereInput[] = [];
@@ -48,7 +47,18 @@ const getAdminAllFromDB = async (params: any, options: any) => {
             createdAt: "desc",
           },
   });
-  return result;
+
+  const total = await prisma.admin.count({
+    where: whereConditions,
+  });
+  return {
+    meta: {
+      page,
+      limit,
+      total,
+    },
+    data: result,
+  };
 };
 
 export const AdminService = {
