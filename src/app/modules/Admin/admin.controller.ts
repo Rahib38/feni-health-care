@@ -1,21 +1,19 @@
 import { Request, Response } from "express";
-import { AdminService } from "./admin.service";
 import pick from "../../../shared/pick";
 import { adminFilterAbleFields } from "./admin.constant";
-
-
+import { AdminService } from "./admin.service";
 
 const getAdminAllFromDB = async (req: Request, res: Response) => {
   // console.log(req.query);
   try {
-    const filters = pick(req.query,adminFilterAbleFields);
-    const options = pick(req.query,["limit","page","sortBy","sortOrder"]);
-    console.log(options)
-    const result = await AdminService.getAdminAllFromDB(filters,options);
+    const filters = pick(req.query, adminFilterAbleFields);
+    const options = pick(req.query, ["limit", "page", "sortBy", "sortOrder"]);
+    console.log(options);
+    const result = await AdminService.getAdminAllFromDB(filters, options);
     res.status(200).json({
       success: true,
       message: "Admin data fetched!",
-      meta:result.meta,
+      meta: result.meta,
       data: result.data,
     });
   } catch (err) {
@@ -27,29 +25,48 @@ const getAdminAllFromDB = async (req: Request, res: Response) => {
   }
 };
 
+const getByIdFromDB = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  try {
+    const result = await AdminService.getByIdFromDB(id);
+    res.status(200).json({
+      success: true,
+      message: "Admin data fetched by id!",
 
-  const getByIdFromDB=async(req: Request, res: Response)=>{
-    const {id}=req.params
-    try{
-
-      const result = await AdminService.getByIdFromDB(id)
-      res.status(200).json({
-        success: true,
-        message: "Admin data fetched by id!",
-       
-        data: result,
-      });
-    }catch(err){
-      res.status(500).json({
-        success: false,
-        message: err?.name || "Something went wrong!",
-        error: err,
-      });
-    }
+      data: result,
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: err?.name || "Something went wrong!",
+      error: err,
+    });
   }
+};
 
+const updateIntoDB = async (req: Request, res: Response) => {
+
+  const { id } = req.params;
+  console.log("id", id)
+  console.log("data", req.body)
+  try {
+    const result = await AdminService.updateIntoDB(id,req.body);
+    res.status(200).json({
+      success: true,
+      message: "Admin data updated!",
+
+      data: result,
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: err?.name || "Something went wrong!",
+      error: err,
+    });
+  }
+};
 
 export const AdminController = {
   getAdminAllFromDB,
-  getByIdFromDB
+  getByIdFromDB,updateIntoDB
 };
