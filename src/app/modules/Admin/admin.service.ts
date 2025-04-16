@@ -1,4 +1,4 @@
-import { Admin, Prisma } from "../../../generated/prisma";
+import { Admin, Prisma, UserStatus } from "../../../generated/prisma";
 import { paginationHelper } from "../../../helpers/paginationHelper";
 import prisma from "../../../shared/prisma";
 import { adminSearchAbleFields } from "./admin.constant";
@@ -90,27 +90,74 @@ const updateIntoDB = async (id: string, data: Partial<Admin>) => {
   return result;
 };
 
-const deleteFromDB= async(id:string)=>{
-  const result = await prisma.$transaction(async(transactionClient)=>{
-    const adminDeletedData= await transactionClient.admin.delete({
-      where:{
-        id
-      }
-    })
+const deleteFromDB = async (id: string) => {
+  const isExists = await prisma.admin.findUnique({
+    where: {
+      id,
+    },
+  });
+
+  if (!isExists) {
+    throw new Error("User Already deleted");
+  }
+
+  const result = await prisma.$transaction(async (transactionClient) => {
+    const adminDeletedData = await transactionClient.admin.delete({
+      where: {
+        id,
+      },
+    });
 
     const userDeletedData = await transactionClient.user.delete({
-      where:{
-        email:adminDeletedData.email
+      where: {
+        email: adminDeletedData.email,
+      },
+    });
+    return adminDeletedData;
+  });
+  return result;
+  console.log("delete!", id);
+};
+
+const softDeleteFromDB = async (id: string) => {
+  const isExists = await prisma.admin.findUnique({
+    where: {
+      id,
+    },
+  });
+
+  if (!isExists) {
+    throw new Error("User Already deleted");
+  }
+
+  const result = await prisma.$transaction(async (transactionClient) => {
+    const adminDeletedData = await transactionClient.admin.update({
+      where: {
+        id,
+      },
+      data:{
+        isDeleted:true
       }
-    })
-    return adminDeletedData
-  })
-  return result
-  console.log('delete!', id)
-}
+    });
+
+    const userDeletedData = await transactionClient.user.update({
+      where: {
+        email: adminDeletedData.email,
+      },
+      data:{
+        status: UserStatus.DELETED
+      }
+    });
+    return adminDeletedData;
+  });
+  return result;
+  console.log("delete!", id);
+};
 
 export const AdminService = {
   getAdminAllFromDB,
   getByIdFromDB,
-  updateIntoDB,deleteFromDB
+  updateIntoDB,
+  deleteFromDB,
+  softDeleteFromDB,
 };
