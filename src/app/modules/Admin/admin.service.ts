@@ -31,6 +31,10 @@ const getAdminAllFromDB = async (params: any, options: any) => {
     });
   }
 
+  andCondions.push({
+    isDeleted: false,
+  });
+
   // console.dir(andCondions,{depth:"inifinity"})
 
   const whereConditions: Prisma.AdminWhereInput = { AND: andCondions };
@@ -61,16 +65,20 @@ const getAdminAllFromDB = async (params: any, options: any) => {
   };
 };
 
-const getByIdFromDB = async (id: string) => {
+const getByIdFromDB = async (id: string): Promise<Admin | null> => {
   const result = await prisma.admin.findUnique({
     where: {
       id,
+      isDeleted: false,
     },
   });
   return result;
 };
 
-const updateIntoDB = async (id: string, data: Partial<Admin>) => {
+const updateIntoDB = async (
+  id: string,
+  data: Partial<Admin>
+): Promise<Admin | null> => {
   const isExist = await prisma.admin.findUnique({
     where: {
       id,
@@ -84,6 +92,7 @@ const updateIntoDB = async (id: string, data: Partial<Admin>) => {
   const result = await prisma.admin.update({
     where: {
       id,
+      isDeleted: false,
     },
     data,
   });
@@ -108,7 +117,7 @@ const deleteFromDB = async (id: string) => {
       },
     });
 
-    const userDeletedData = await transactionClient.user.delete({
+    await transactionClient.user.delete({
       where: {
         email: adminDeletedData.email,
       },
@@ -123,6 +132,7 @@ const softDeleteFromDB = async (id: string) => {
   const isExists = await prisma.admin.findUnique({
     where: {
       id,
+      isDeleted: false,
     },
   });
 
@@ -135,18 +145,18 @@ const softDeleteFromDB = async (id: string) => {
       where: {
         id,
       },
-      data:{
-        isDeleted:true
-      }
+      data: {
+        isDeleted: true,
+      },
     });
 
-    const userDeletedData = await transactionClient.user.update({
+    await transactionClient.user.update({
       where: {
         email: adminDeletedData.email,
       },
-      data:{
-        status: UserStatus.DELETED
-      }
+      data: {
+        status: UserStatus.DELETED,
+      },
     });
     return adminDeletedData;
   });
