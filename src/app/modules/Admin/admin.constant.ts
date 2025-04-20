@@ -5,5 +5,4 @@ export const adminFilterAbleFields = [
   "contactNumber",
 ];
 
-export const adminSearchAbleFields = ["name", "email",
-    "contactNumber"];
+export const adminSearchAbleFields = ["name", "email", "contactNumber"];
