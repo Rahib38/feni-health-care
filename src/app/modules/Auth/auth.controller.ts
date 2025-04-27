@@ -7,29 +7,26 @@ import { authService } from "./auth.service";
 const loginUser = catchAsync(async (req: Request, res: Response) => {
   const result = await authService.loginUser(req.body);
 
+  const { refreshToken } = result;
 
-  const {refreshToken}=result
-
-  res.cookie("refreshToken",refreshToken,{
-    secure:false,
-    httpOnly:true
-  })
+  res.cookie("refreshToken", refreshToken, {
+    secure: false,
+    httpOnly: true,
+  });
 
   sendResponse(res, {
     statusCode: status.OK,
     success: true,
     message: "Logged in successfully..!",
     data: {
-      accessToken:result.accessToken,
-      needPasswordChange:result.needPasswordChange
+      accessToken: result.accessToken,
+      needPasswordChange: result.needPasswordChange,
     },
   });
 });
 
-
 const refreshToken = catchAsync(async (req: Request, res: Response) => {
-
-  const {refreshToken}=req.cookies
+  const { refreshToken } = req.cookies;
 
   const result = await authService.refreshToken(refreshToken);
 
@@ -37,7 +34,7 @@ const refreshToken = catchAsync(async (req: Request, res: Response) => {
     statusCode: status.OK,
     success: true,
     message: "Logged in successfully..!",
-    data:result
+    data: result,
     // data: {
     //   accessToken:result.accessToken,
     //   needPasswordChange:result.needPasswordChange
@@ -45,8 +42,19 @@ const refreshToken = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const changePassword = catchAsync(async (req: Request, res: Response) => {
+  const result = await authService.changePassword(req.user, req.body);
 
+  sendResponse(res, {
+    statusCode: status.OK,
+    success: true,
+    message: "password change successfully..!",
+    data: result,
+  });
+});
 
 export const authController = {
-    loginUser,refreshToken
-}
+  loginUser,
+  refreshToken,
+  changePassword,
+};
